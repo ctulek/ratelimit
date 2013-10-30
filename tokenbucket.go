@@ -26,6 +26,9 @@ func (bucket *TokenBucket) Consume(count int64, limit int64, maxTime time.Durati
 		elapsed := now.Sub(bucket.LastAccessTime)
 		back := limit * int64(elapsed.Seconds()) / int64(maxTime.Seconds())
 		used -= back
+		if used < 0 {
+			used = 0
+		}
 	}
 
 	if used+count <= limit {

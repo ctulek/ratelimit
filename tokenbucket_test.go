@@ -25,13 +25,26 @@ func TestLimitError(t *testing.T) {
 	}
 }
 
-func TestTimePassed(t *testing.T) {
+func TestEnoughTimePassed(t *testing.T) {
 	duration, _ := time.ParseDuration("100s")
-	bucket := &TokenBucket{Used: 10, LastAccessTime: time.Now().Add(-duration)}
+	bucket := &TokenBucket{Used: 10, LastAccessTime: time.Now().Add(-(duration / 2))}
 
 	err := bucket.Consume(1, 10, duration)
 	if err != nil {
 		t.Error("Consume shouldn't fail")
+	}
+}
+
+func TestMoreThanEnoughTimePassed(t *testing.T) {
+	duration, _ := time.ParseDuration("100s")
+	bucket := &TokenBucket{Used: 10, LastAccessTime: time.Now().Add(-(duration * 2))}
+
+	err := bucket.Consume(1, 10, duration)
+	if err != nil {
+		t.Error("Consume shouldn't fail")
+	}
+	if bucket.Used < 0 {
+		t.Error("Used cannot be less than zero:", bucket.Used)
 	}
 }
 
