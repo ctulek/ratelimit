@@ -14,11 +14,11 @@ After the addition of memcache/redis backends, it can be used for production cod
 **duration:** Time window in which the limits will apply. See http://golang.org/pkg/time/#ParseDuration for formatting options.
 
 ### Requirements: ###
+* GOPATH environment variable
 * go 1.2
 
 ### Installation: ###
-To install `ratelimitd` run:
-
+To install `ratelimitd` run:  
 `go get github.com/ctulek/ratelimit/ratelimitd`
 
 ### Usage: ###
