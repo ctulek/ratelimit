@@ -65,7 +65,10 @@ func (s *HttpServer) post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	used, err := s.limiter.Post(key, count, max, duration)
-	if err != nil {
+	if err == ERROR_LIMIT {
+		http.Error(w, err.Error(), http.StatusMethodNotAllowed)
+		return
+	} else if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -1,14 +1,13 @@
 package ratelimit
 
 import (
+	"errors"
 	"time"
 )
 
-type LimitError int
-
-func (l LimitError) Error() string {
-	return "Limit Error"
-}
+var (
+	ERROR_LIMIT = errors.New("Limit reached")
+)
 
 type TokenBucket struct {
 	Used           int64
@@ -38,5 +37,5 @@ func (bucket *TokenBucket) Consume(count int64, limit int64, maxTime time.Durati
 		return nil
 	}
 
-	return new(LimitError)
+	return ERROR_LIMIT
 }

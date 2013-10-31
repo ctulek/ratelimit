@@ -20,7 +20,7 @@ func TestLimitError(t *testing.T) {
 
 	duration, _ := time.ParseDuration("100s")
 	err := bucket.Consume(1, 10, duration)
-	if err == nil {
+	if err != ERROR_LIMIT {
 		t.Error("Consume should fail")
 	}
 }
@@ -30,7 +30,7 @@ func TestEnoughTimePassed(t *testing.T) {
 	bucket := &TokenBucket{Used: 10, LastAccessTime: time.Now().Add(-(duration / 2))}
 
 	err := bucket.Consume(1, 10, duration)
-	if err != nil {
+	if err == ERROR_LIMIT {
 		t.Error("Consume shouldn't fail")
 	}
 }
@@ -40,7 +40,7 @@ func TestMoreThanEnoughTimePassed(t *testing.T) {
 	bucket := &TokenBucket{Used: 10, LastAccessTime: time.Now().Add(-(duration * 2))}
 
 	err := bucket.Consume(1, 10, duration)
-	if err != nil {
+	if err == ERROR_LIMIT {
 		t.Error("Consume shouldn't fail")
 	}
 	if bucket.Used < 0 {
@@ -53,7 +53,7 @@ func TestNotEnoughTimePassed(t *testing.T) {
 	bucket := &TokenBucket{Used: 10, LastAccessTime: time.Now().Add(-(duration / 20))}
 
 	err := bucket.Consume(1, 10, duration)
-	if err == nil {
+	if err != ERROR_LIMIT {
 		t.Error("Consume should fail")
 	}
 }
@@ -63,7 +63,7 @@ func Test5Added1Used(t *testing.T) {
 	bucket := &TokenBucket{Used: 8, LastAccessTime: time.Now().Add(-(duration / 2))}
 
 	err := bucket.Consume(1, 10, duration)
-	if err != nil {
+	if err == ERROR_LIMIT {
 		t.Error("Consume shouldn't fail")
 	}
 	if bucket.Used != 4 {
