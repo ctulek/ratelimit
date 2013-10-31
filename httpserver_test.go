@@ -2,6 +2,8 @@ package ratelimit
 
 import (
 	"bytes"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -9,11 +11,12 @@ import (
 )
 
 func TestHttpServer(t *testing.T) {
+	logger := log.New(ioutil.Discard, "", 0)
 	storage := NewDummyStorage()
 	limiter := NewSingleThreadLimiter(storage)
 	limiter.Start()
 	defer limiter.Stop()
-	httpServer := NewHttpServer(limiter)
+	httpServer := NewHttpServer(limiter, logger)
 	recorder := httptest.NewRecorder()
 	values := url.Values{}
 	values.Set("key", "testkey1")
@@ -31,11 +34,12 @@ func TestHttpServer(t *testing.T) {
 }
 
 func TestHttpServerMissingValues(t *testing.T) {
+	logger := log.New(ioutil.Discard, "", 0)
 	storage := NewDummyStorage()
 	limiter := NewSingleThreadLimiter(storage)
 	limiter.Start()
 	defer limiter.Stop()
-	httpServer := NewHttpServer(limiter)
+	httpServer := NewHttpServer(limiter, logger)
 	recorder := httptest.NewRecorder()
 	values := url.Values{}
 	values.Set("key", "testkey1")
@@ -52,11 +56,12 @@ func TestHttpServerMissingValues(t *testing.T) {
 }
 
 func TestHttpServerLimitReached(t *testing.T) {
+	logger := log.New(ioutil.Discard, "", 0)
 	storage := NewDummyStorage()
 	limiter := NewSingleThreadLimiter(storage)
 	limiter.Start()
 	defer limiter.Stop()
-	httpServer := NewHttpServer(limiter)
+	httpServer := NewHttpServer(limiter, logger)
 	recorder := httptest.NewRecorder()
 	values := url.Values{}
 	values.Set("key", "testkey1")

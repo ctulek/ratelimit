@@ -6,6 +6,7 @@ import (
 	"github.com/ctulek/ratelimit"
 	"log"
 	"net/http"
+	"os"
 )
 
 var (
@@ -19,7 +20,8 @@ func main() {
 	limiter := ratelimit.NewSingleThreadLimiter(storage)
 	limiter.Start()
 	defer limiter.Stop()
-	httpServer := ratelimit.NewHttpServer(limiter)
+	logger := log.New(os.Stdout, "", log.LstdFlags)
+	httpServer := ratelimit.NewHttpServer(limiter, logger)
 	http.Handle("/", httpServer)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
 }
