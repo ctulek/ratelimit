@@ -18,8 +18,8 @@ func TestHttpServer(t *testing.T) {
 	values := url.Values{}
 	values.Set("key", "testkey1")
 	values.Set("count", "1")
-	values.Set("max", "10")
-	values.Set("maxTime", "100s")
+	values.Set("limit", "10")
+	values.Set("duration", "100s")
 	request, _ := http.NewRequest("POST", "/?"+values.Encode(), nil)
 	httpServer.ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusOK {
@@ -39,8 +39,8 @@ func TestHttpServerMissingValues(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	values := url.Values{}
 	values.Set("key", "testkey1")
-	values.Set("max", "10")
-	values.Set("maxTime", "100s")
+	values.Set("limit", "10")
+	values.Set("duration", "100s")
 	request, _ := http.NewRequest("POST", "/?"+values.Encode(), nil)
 	httpServer.ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusBadRequest {
@@ -61,8 +61,8 @@ func TestHttpServerLimitReached(t *testing.T) {
 	values := url.Values{}
 	values.Set("key", "testkey1")
 	values.Set("count", "1")
-	values.Set("max", "1")
-	values.Set("maxTime", "100s")
+	values.Set("limit", "1")
+	values.Set("duration", "100s")
 	request, _ := http.NewRequest("POST", "/?"+values.Encode(), nil)
 	httpServer.ServeHTTP(recorder, request)
 	recorder = httptest.NewRecorder()

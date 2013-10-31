@@ -6,7 +6,7 @@ import (
 
 type Limiter interface {
 	Get(key string) (int64, error)
-	Post(key string, count int64, max int64, duration time.Duration) (int64, error)
+	Post(key string, count int64, limit int64, duration time.Duration) (int64, error)
 	Delete(key string) error
 }
 
@@ -28,15 +28,15 @@ func (l *SingleThreadLimiter) Stop() {
 	l.stopChan <- 1
 }
 
-func (l *SingleThreadLimiter) Post(key string, count int64, max int64, duration time.Duration) (int64, error) {
-	if count <= 0 || max <= 0 || count > max || duration.Seconds() <= 0 {
+func (l *SingleThreadLimiter) Post(key string, count int64, limit int64, duration time.Duration) (int64, error) {
+	if count <= 0 || limit <= 0 || count > limit || duration.Seconds() <= 0 {
 		return 0, nil
 	}
 	req := request{
 		POST,
 		key,
 		count,
-		max,
+		limit,
 		duration,
 		make(chan response),
 	}
@@ -93,7 +93,7 @@ func (l *SingleThreadLimiter) serve() {
 					bucket = &TokenBucket{0, time.Now()}
 				}
 				if req.method == POST {
-					err = bucket.Consume(req.count, req.max, req.duration)
+					err = bucket.Consume(req.count, req.limit, req.duration)
 					l.storage.Set(req.key, bucket, req.duration)
 				}
 				req.response <- response{bucket.Used, err}
@@ -117,7 +117,7 @@ type request struct {
 	method   int
 	key      string
 	count    int64
-	max      int64
+	limit    int64
 	duration time.Duration
 	response chan response
 }

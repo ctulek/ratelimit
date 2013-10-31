@@ -54,17 +54,17 @@ func (s *HttpServer) post(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	max, err := s.getRequiredKeyInt("max", values)
+	limit, err := s.getRequiredKeyInt("limit", values)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	duration, err := s.getRequiredKeyDuration("maxTime", values)
+	duration, err := s.getRequiredKeyDuration("duration", values)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	used, err := s.limiter.Post(key, count, max, duration)
+	used, err := s.limiter.Post(key, count, limit, duration)
 	if err == ERROR_LIMIT {
 		http.Error(w, err.Error(), http.StatusMethodNotAllowed)
 		return
