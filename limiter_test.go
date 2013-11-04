@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestLimiter(t *testing.T) {
+func TestLimiterPost(t *testing.T) {
 	storage := NewDummyStorage()
 	duration, _ := time.ParseDuration("100s")
 	limiter := NewSingleThreadLimiter(storage)
@@ -26,9 +26,23 @@ func TestLimiter(t *testing.T) {
 	if used != 2 {
 		t.Error("There should be 2 token used", used)
 	}
-	used, err = limiter.Get("testkey1")
+	used, _ = limiter.Get("testkey1")
 	if used != 2 {
 		t.Error("There should be 2 token used", used)
+	}
+}
+
+func TestLimiterGet(t *testing.T) {
+	storage := NewDummyStorage()
+	duration, _ := time.ParseDuration("100s")
+	bucket := &TokenBucket{2, time.Now().Add(-duration), 10, duration}
+	storage.Set("testkey1", bucket, 0)
+	limiter := NewSingleThreadLimiter(storage)
+	limiter.Start()
+	defer limiter.Stop()
+	used, _ := limiter.Get("testkey1")
+	if used != 0 {
+		t.Error("There should be 0 token used", used)
 	}
 }
 

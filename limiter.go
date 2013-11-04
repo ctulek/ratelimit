@@ -80,6 +80,19 @@ func (l *SingleThreadLimiter) serve() {
 			break
 		case req := <-l.reqChan:
 			switch req.method {
+			case GET:
+				bucket, err := l.storage.Get(req.key)
+				if err != nil {
+					req.response <- response{0, err}
+					continue
+				}
+				if bucket == nil {
+					req.response <- response{0, nil}
+					continue
+				}
+				err = bucket.Consume(0, bucket.Limit, bucket.Duration)
+				l.storage.Set(req.key, bucket, req.duration)
+				req.response <- response{bucket.Used, err}
 			case DELETE:
 				err := l.storage.Delete(req.key)
 				req.response <- response{0, err}
@@ -90,12 +103,13 @@ func (l *SingleThreadLimiter) serve() {
 					continue
 				}
 				if bucket == nil {
-					bucket = &TokenBucket{0, time.Now()}
+					bucket = NewTokenBucket(req.limit, req.duration)
 				}
 				if req.method == POST {
 					err = bucket.Consume(req.count, req.limit, req.duration)
-					l.storage.Set(req.key, bucket, req.duration)
+
 				}
+				l.storage.Set(req.key, bucket, req.duration)
 				req.response <- response{bucket.Used, err}
 			}
 		}

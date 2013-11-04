@@ -80,7 +80,7 @@ func (s *HttpServer) post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	used, err := s.limiter.Post(key, count, limit, duration)
-	if err == ERROR_LIMIT {
+	if err == ErrLimitReached {
 		s.logger.Println("HTTP POST 405", key, count, limit, values.Get("duration"))
 		http.Error(w, err.Error(), http.StatusMethodNotAllowed)
 		return
