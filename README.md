@@ -4,14 +4,11 @@ ratelimit
 ratelimit is a go server to provide a rate limiter where the developer sends request with
 a key, count, limit and duration and gets a success or failure response back.
 
-*IMPORTANT:* This project is still at the proof of concept stage.
-After the addition of memcache/redis backends, it can be used for production code.
-
 #### Definitions: ####
 **key:** Any string that represents the resource you want to limit  
 **count:** Amount of resource to consume  
 **limit:** Maximum amount of resource that can be consumed  
-**duration:** Time window in which the limits will apply. See http://golang.org/pkg/time/#ParseDuration for formatting options.
+**duration:** Time window in which the limits will apply. See http://golang.org/pkg/time/#ParseDuration for formatting.
 
 ### Requirements: ###
 * GOPATH environment variable
@@ -21,11 +18,15 @@ After the addition of memcache/redis backends, it can be used for production cod
 To install `ratelimitd` run:  
 `go get github.com/ctulek/ratelimit/ratelimitd`
 
+Make sure that `$GOPATH/bin` is included in your `PATH`
+
 ### Usage: ###
-* Start server:  
+* To start server:  
 `ratelimitd`
-* Server will start listening at port `9090`. If you want to change the default port try:  
-`ratelimitd -port={PORT}`
+* Server will start listening on port `9090`. If you want to change the default port try:  
+`ratelimitd --port={PORT}`
+* To start server with Redis backend:  
+`ratelimitd --redis=localhost:6379`
 
 ### Examples: ###
 #### Consuming Keys:####
