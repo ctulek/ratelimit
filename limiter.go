@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"errors"
 	"time"
 )
 
@@ -95,7 +96,7 @@ func (l *SingleThreadLimiter) serve() {
 			case DELETE:
 				err := l.storage.Delete(req.key)
 				req.response <- response{0, err}
-			default:
+			case POST:
 				bucket, err := l.storage.Get(req.key)
 				if err != nil {
 					req.response <- response{0, err}
@@ -104,12 +105,20 @@ func (l *SingleThreadLimiter) serve() {
 				if bucket == nil {
 					bucket = NewTokenBucket(req.limit, req.duration)
 				}
-				if req.method == POST {
-					err = bucket.Consume(req.count, req.limit, req.duration)
-
+				err = bucket.Consume(req.count, req.limit, req.duration)
+				if err != nil {
+					req.response <- response{bucket.Used, err}
+					continue
 				}
-				l.storage.Set(req.key, bucket, req.duration)
-				req.response <- response{bucket.Used, err}
+				err = l.storage.Set(req.key, bucket, req.duration)
+				if err != nil {
+					req.response <- response{0, err}
+					continue
+				}
+				req.response <- response{bucket.Used, nil}
+			default:
+				req.response <- response{0, errors.New("Undefined Method")}
+				continue
 			}
 		}
 	}
