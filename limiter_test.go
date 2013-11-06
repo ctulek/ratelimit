@@ -35,7 +35,8 @@ func TestLimiterPost(t *testing.T) {
 func TestLimiterGet(t *testing.T) {
 	storage := NewDummyStorage()
 	duration, _ := time.ParseDuration("100s")
-	bucket := &TokenBucket{2, time.Now().Add(-duration), 10, duration}
+	lastAccessTime := time.Now().Add(-duration)
+	bucket := &TokenBucket{2, lastAccessTime, 10, duration}
 	storage.Set("testkey1", bucket, 0)
 	limiter := NewSingleThreadLimiter(storage)
 	limiter.Start()
@@ -43,6 +44,12 @@ func TestLimiterGet(t *testing.T) {
 	used, _ := limiter.Get("testkey1")
 	if used != 0 {
 		t.Error("There should be 0 token used", used)
+	}
+	if bucket.Used != 2 {
+		t.Error("Bucket Used shouldn't change")
+	}
+	if bucket.LastAccessTime != lastAccessTime {
+		t.Error("Bucket LastAccessTime shouldn't change")
 	}
 }
 
