@@ -32,6 +32,7 @@ func NewRedisStorage(pool *redis.Pool, prefix string) *RedisStorage {
 
 func (rs *RedisStorage) Get(key string) (*TokenBucket, error) {
 	conn := rs.pool.Get()
+	defer conn.Close()
 	data, err := redis.Bytes(conn.Do("GET", rs.prefix+key))
 	if err == redis.ErrNil {
 		return nil, nil
@@ -49,6 +50,7 @@ func (rs *RedisStorage) Get(key string) (*TokenBucket, error) {
 
 func (rs *RedisStorage) Set(key string, bucket *TokenBucket, duration time.Duration) error {
 	conn := rs.pool.Get()
+	defer conn.Close()
 	var buffer = bytes.NewBuffer(nil)
 	enc := gob.NewEncoder(buffer)
 	enc.Encode(bucket)
@@ -64,6 +66,7 @@ func (rs *RedisStorage) Set(key string, bucket *TokenBucket, duration time.Durat
 
 func (rs *RedisStorage) Delete(key string) error {
 	conn := rs.pool.Get()
+	defer conn.Close()
 	result, err := redis.Int(conn.Do("DEL", rs.prefix+key))
 	if err != nil {
 		return err
