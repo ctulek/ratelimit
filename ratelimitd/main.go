@@ -22,8 +22,14 @@ var (
 	cpuprofile        = flag.String("cpuprofile", "", "write cpu profile to file")
 )
 
-func main() {
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "\nOptions:\n")
+	flag.PrintDefaults()
+}
 
+func main() {
+	flag.Usage = usage
 	flag.Parse()
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
