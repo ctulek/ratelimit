@@ -85,11 +85,11 @@ func (s *HttpServer) post(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusMethodNotAllowed)
 		return
 	} else if err != nil {
-		s.logger.Println("HTTP POST 500", req.URL)
+		s.logger.Println("HTTP POST 500", req.URL, err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	s.logger.Println("HTTP POST", key, count, limit, values.Get("duration"), used)
+	s.logger.Println("HTTP POST 200", key, count, limit, values.Get("duration"), used)
 	fmt.Fprintln(w, used)
 }
 
