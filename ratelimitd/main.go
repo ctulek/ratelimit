@@ -18,6 +18,7 @@ var (
 	port              = flag.Int("port", 9090, "HTTP port to listen for")
 	redisHost         = flag.String("redis", "", "Redis host and port. Eg: localhost:6379")
 	redisConnPoolSize = flag.Int("redisConnPoolSize", 5, "Redis connection pool size. Default: 5")
+	memcacheHost      = flag.String("memcache", "", "Memcache host and port. Eg: localhost:11211")
 	redisPrefix       = flag.String("redisPrefix", "rl_", "Redis prefix to attach to keys")
 	cpuprofile        = flag.String("cpuprofile", "", "write cpu profile to file")
 )
@@ -45,7 +46,11 @@ func main() {
 
 	// Set the storage
 	var storage ratelimit.Storage
-	if *redisHost != "" {
+	if *memcacheHost != "" {
+		client := ratelimit.NewMemcacheClient(*memcacheHost)
+		storage = ratelimit.NewMemcacheStorage(client, *redisPrefix)
+		fmt.Println("Using Memcache for backend storage")
+	} else if *redisHost != "" {
 		redisConnPool := ratelimit.NewRedisConnectionPool(*redisHost, *redisConnPoolSize)
 		storage = ratelimit.NewRedisStorage(redisConnPool, *redisPrefix)
 		fmt.Println("Using Redis for backend storage")
