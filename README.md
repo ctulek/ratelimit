@@ -25,6 +25,8 @@ Make sure that `$GOPATH/bin` is included in your `PATH`
 `ratelimitd`
 * Server will start listening on port `9090`. If you want to change the default port try:  
 `ratelimitd --port={PORT}`
+* To start server with Memcache backend:  
+`ratelimitd --memcache=localhost:11211`
 * To start server with Redis backend:  
 `ratelimitd --redis=localhost:6379`
 
@@ -39,7 +41,7 @@ Make sure that `$GOPATH/bin` is included in your `PATH`
   Content-Length: 2
   Date: Thu, 31 Oct 2013 03:58:41 GMT
   
-  1
+  3
 ```
 #### Reaching to Limit ####
 **Request:**  
