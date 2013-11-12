@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"runtime/pprof"
 )
 
@@ -30,6 +31,8 @@ func usage() {
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	flag.Usage = usage
 	flag.Parse()
 	if *cpuprofile != "" {
