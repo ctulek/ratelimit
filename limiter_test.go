@@ -41,6 +41,10 @@ func TestLimiterGet(t *testing.T) {
 	limiter := NewSingleThreadLimiter(storage)
 	limiter.Start()
 	defer limiter.Stop()
+	_, err := limiter.Get("testkey_notexist")
+	if err != ErrNotFound {
+		t.Error("Should return Not Found error", err)
+	}
 	used, _ := limiter.Get("testkey1")
 	if used != 0 {
 		t.Error("There should be 0 token used", used)

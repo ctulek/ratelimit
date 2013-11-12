@@ -88,7 +88,7 @@ func (l *SingleThreadLimiter) serve() {
 					continue
 				}
 				if bucket == nil {
-					req.response <- response{0, nil}
+					req.response <- response{0, ErrNotFound}
 					continue
 				}
 				usage := bucket.GetAdjustedUsage()
