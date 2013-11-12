@@ -44,7 +44,11 @@ func (s *HttpServer) get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	used, err := s.limiter.Get(key)
-	if err != nil {
+	if err == ErrNotFound {
+		s.logger.Println("HTTP GET 404", key)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	} else if err != nil {
 		s.logger.Println("HTTP GET 500", key)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

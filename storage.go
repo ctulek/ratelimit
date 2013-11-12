@@ -1,7 +1,12 @@
 package ratelimit
 
 import (
+	"errors"
 	"time"
+)
+
+var (
+	ErrNotFound = errors.New("Not found")
 )
 
 type Storage interface {

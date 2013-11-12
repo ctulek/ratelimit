@@ -81,3 +81,21 @@ func TestHttpServerLimitReached(t *testing.T) {
 		t.Error("Response body is wrong:", recorder.Body.String())
 	}
 }
+
+func TestHttpServer404(t *testing.T) {
+	logger := log.New(ioutil.Discard, "", 0)
+	storage := NewDummyStorage()
+	limiter := NewSingleThreadLimiter(storage)
+	limiter.Start()
+	defer limiter.Stop()
+	httpServer := NewHttpServer(limiter, logger)
+	recorder := httptest.NewRecorder()
+	values := url.Values{}
+	values.Set("key", "testkey1")
+	request, _ := http.NewRequest("GET", "/?"+values.Encode(), nil)
+	httpServer.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNotFound {
+		t.Error("Status code is not 404", recorder.Code)
+	}
+}
