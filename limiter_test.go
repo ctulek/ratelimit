@@ -7,7 +7,7 @@ import (
 
 func TestLimiterPost(t *testing.T) {
 	storage := NewDummyStorage()
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	limiter := NewSingleThreadLimiter(storage)
 	limiter.Start()
 	defer limiter.Stop()
@@ -34,7 +34,7 @@ func TestLimiterPost(t *testing.T) {
 
 func TestLimiterGet(t *testing.T) {
 	storage := NewDummyStorage()
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	lastAccessTime := time.Now().Add(-duration)
 	bucket := &TokenBucket{2, lastAccessTime, 10, duration}
 	storage.Set("testkey1", bucket, 0)
@@ -59,7 +59,7 @@ func TestLimiterGet(t *testing.T) {
 
 func TestLimiterMulti(t *testing.T) {
 	storage := NewDummyStorage()
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	limiter := NewSingleThreadLimiter(storage)
 	limiter.Start()
 	defer limiter.Stop()
@@ -94,7 +94,7 @@ func TestLimiterMulti(t *testing.T) {
 
 func TestLimiterDelete(t *testing.T) {
 	storage := NewDummyStorage()
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	limiter := NewSingleThreadLimiter(storage)
 	limiter.Start()
 	defer limiter.Stop()

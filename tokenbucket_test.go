@@ -16,7 +16,7 @@ func TestConsume(t *testing.T) {
 }
 
 func TestConsumeZeroDuration(t *testing.T) {
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	bucket := &TokenBucket{Used: 5, Limit: 10, LastAccessTime: time.Now().Add(-(duration / 2))}
 
 	err := bucket.Consume(1, 10, 0)
@@ -29,7 +29,7 @@ func TestConsumeZeroDuration(t *testing.T) {
 }
 
 func TestLimitError(t *testing.T) {
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	bucket := NewTokenBucket(10, duration)
 	bucket.Used = 10
 	err := bucket.Consume(1, 10, duration)
@@ -39,7 +39,7 @@ func TestLimitError(t *testing.T) {
 }
 
 func TestEnoughTimePassed(t *testing.T) {
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	bucket := &TokenBucket{Used: 10, LastAccessTime: time.Now().Add(-(duration / 2))}
 
 	err := bucket.Consume(1, 10, duration)
@@ -49,7 +49,7 @@ func TestEnoughTimePassed(t *testing.T) {
 }
 
 func TestMoreThanEnoughTimePassed(t *testing.T) {
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	bucket := &TokenBucket{Used: 10, LastAccessTime: time.Now().Add(-(duration * 2))}
 
 	err := bucket.Consume(1, 10, duration)
@@ -62,7 +62,7 @@ func TestMoreThanEnoughTimePassed(t *testing.T) {
 }
 
 func TestNotEnoughTimePassed(t *testing.T) {
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	bucket := NewTokenBucket(10, duration)
 	bucket.Used = 10
 	bucket.LastAccessTime = time.Now().Add(-(duration / 20))
@@ -74,7 +74,7 @@ func TestNotEnoughTimePassed(t *testing.T) {
 }
 
 func Test5Added1Used(t *testing.T) {
-	duration, _ := time.ParseDuration("100s")
+	duration := time.Second * 100
 	bucket := NewTokenBucket(10, duration)
 	bucket.Used = 8
 	bucket.LastAccessTime = time.Now().Add(-(duration / 2))
