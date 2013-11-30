@@ -92,7 +92,8 @@ func (l *SingleThreadLimiter) serve() {
 					req.response <- response{0, ErrNotFound}
 					continue
 				}
-				req.response <- response{usage(bucket.GetAdjustedUsage()), nil}
+				now := time.Now()
+				req.response <- response{usage(bucket.GetAdjustedUsage(now)), nil}
 			case DELETE:
 				err := l.storage.Delete(req.key)
 				req.response <- response{0, err}

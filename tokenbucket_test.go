@@ -101,9 +101,10 @@ func TestFractionalTime(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if bucket.GetAdjustedUsage() > 5.6 && bucket.GetAdjustedUsage() < 5.7 {
+
+	if usage := bucket.GetAdjustedUsage(time.Now()); usage > 5.6 && usage < 5.7 {
 		t.Error("Adjusted Usage should be greater than 5.6 and less than 5.7",
-			bucket.GetAdjustedUsage(),
+			usage,
 		)
 	}
 	bucket.LastAccessTime = bucket.LastAccessTime.Add(-(time.Second * 12))
@@ -112,9 +113,11 @@ func TestFractionalTime(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(bucket)
-	if bucket.GetAdjustedUsage() > 5.4 && bucket.GetAdjustedUsage() < 5.5 {
+
+	if usage := bucket.GetAdjustedUsage(time.Now()); usage > 5.4 && usage < 5.5 {
 		t.Error("Adjusted Usage should be greater than 5.4 and less than 5.5",
-			bucket.GetAdjustedUsage(),
+			usage,
 		)
 	}
+
 }

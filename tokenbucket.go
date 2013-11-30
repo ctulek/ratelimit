@@ -34,7 +34,7 @@ func (bucket *TokenBucket) Consume(count, limit float64, duration time.Duration)
 		bucket.Duration = duration
 	}
 
-	used := bucket.GetAdjustedUsage()
+	used := bucket.GetAdjustedUsage(now)
 
 	if used+count <= limit {
 		bucket.Used = used + count
@@ -45,8 +45,7 @@ func (bucket *TokenBucket) Consume(count, limit float64, duration time.Duration)
 	return ErrLimitReached
 }
 
-func (bucket *TokenBucket) GetAdjustedUsage() float64 {
-	now := time.Now()
+func (bucket *TokenBucket) GetAdjustedUsage(now time.Time) float64 {
 	used := bucket.Used
 	if bucket.LastAccessTime.Unix() > 0 {
 		elapsed := now.Sub(bucket.LastAccessTime)
