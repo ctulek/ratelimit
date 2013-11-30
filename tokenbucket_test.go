@@ -89,8 +89,8 @@ func Test5Added1Used(t *testing.T) {
 }
 
 // Tests fractional time. In the following example, after 54 seconds,
-// Usage should be calculated as 4.6 + 1 = 5.6 -> 6, then another 12
-// seconds means usage should be 4.4 + 1 = 5.4 -> 5.
+// Usage should be calculated as 4.6 + 1 = 5.6, then another 12
+// seconds means usage should be 4.4 + 1 = 5.4.
 func TestFractionalTime(t *testing.T) {
 	duration := time.Second * 100
 	bucket := NewTokenBucket(10, duration)
@@ -101,14 +101,19 @@ func TestFractionalTime(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	if bucket.GetAdjustedUsage() > 5.6 && bucket.GetAdjustedUsage() < 5.7 {
+		t.Error("Adjusted Usage should be greater than 5.6 and less than 5.7",
+			bucket.GetAdjustedUsage(),
+		)
+	}
 	bucket.LastAccessTime = bucket.LastAccessTime.Add(-(time.Second * 12))
 	err = bucket.Consume(1, 10, duration)
 	if err != nil {
 		t.Error(err)
 	}
 	t.Log(bucket)
-	if int64(bucket.GetAdjustedUsage()) != 5 {
-		t.Error("Adjusted Usage should be greater than 5 and less than 6",
+	if bucket.GetAdjustedUsage() > 5.4 && bucket.GetAdjustedUsage() < 5.5 {
+		t.Error("Adjusted Usage should be greater than 5.4 and less than 5.5",
 			bucket.GetAdjustedUsage(),
 		)
 	}
