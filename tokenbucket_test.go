@@ -83,7 +83,38 @@ func Test5Added1Used(t *testing.T) {
 	if err == ErrLimitReached {
 		t.Error("Consume shouldn't fail")
 	}
-	if bucket.Used != 4 {
-		t.Error("bucket.Used should be equal to 4", bucket)
+	if int64(bucket.Used) != 3 {
+		t.Error("bucket.Used should be greater than 3 and less than 4", bucket.Used)
+	}
+}
+
+// Tests fractional time. In the following example, after 54 seconds,
+// Usage should be calculated as 4.6 + 1 = 5.6, then another 12
+// seconds means usage should be 4.4 + 1 = 5.4.
+func TestFractionalTime(t *testing.T) {
+	duration := time.Second * 100
+	bucket := NewTokenBucket(10, duration)
+	bucket.Used = 10
+	bucket.LastAccessTime = time.Now().Add(-(time.Second * 54))
+	err := bucket.Consume(1, 10, duration)
+	t.Log(bucket)
+	if err != nil {
+		t.Error(err)
+	}
+	if bucket.GetAdjustedUsage() > 5.6 && bucket.GetAdjustedUsage() < 5.7 {
+		t.Error("Adjusted Usage should be greater than 5.6 and less than 5.7",
+			bucket.GetAdjustedUsage(),
+		)
+	}
+	bucket.LastAccessTime = bucket.LastAccessTime.Add(-(time.Second * 12))
+	err = bucket.Consume(1, 10, duration)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(bucket)
+	if bucket.GetAdjustedUsage() > 5.4 && bucket.GetAdjustedUsage() < 5.5 {
+		t.Error("Adjusted Usage should be greater than 5.4 and less than 5.5",
+			bucket.GetAdjustedUsage(),
+		)
 	}
 }

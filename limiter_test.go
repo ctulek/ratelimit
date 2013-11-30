@@ -15,6 +15,8 @@ func TestLimiterPost(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	bucket, _ := storage.Get("testkey1")
+	t.Log(bucket)
 	if used != 1 {
 		t.Error("There should be 1 token used", used)
 	}
@@ -23,12 +25,55 @@ func TestLimiterPost(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	t.Log(bucket)
 	if used != 2 {
 		t.Error("There should be 2 token used", used)
 	}
 	used, _ = limiter.Get("testkey1")
 	if used != 2 {
 		t.Error("There should be 2 token used", used)
+	}
+}
+
+// Thanks to fractions 3rd Post call should return 2 used
+func TestLimiterEverySecondForMax5In10Seconds(t *testing.T) {
+	storage := NewDummyStorage()
+	duration := time.Second * 10
+	limiter := NewSingleThreadLimiter(storage)
+	limiter.Start()
+	defer limiter.Stop()
+	used, err := limiter.Post("testkey1", 1, 5, duration)
+	if err != nil {
+		t.Error(err)
+	}
+	if used != 1 {
+		t.Error("There should be 1 token used", used)
+	}
+
+	bucket, _ := storage.Get("testkey1")
+	bucket.LastAccessTime = bucket.LastAccessTime.Add(-time.Second)
+	used, err = limiter.Post("testkey1", 1, 5, duration)
+	if err != nil {
+		t.Error(err)
+	}
+	if used != 2 {
+		t.Error("There should be 2 token used", used)
+	}
+	bucket.LastAccessTime = bucket.LastAccessTime.Add(-time.Second)
+	used, err = limiter.Post("testkey1", 1, 5, duration)
+	if err != nil {
+		t.Error(err)
+	}
+	if used != 2 {
+		t.Error("There should be 2 token used", used)
+	}
+	bucket.LastAccessTime = bucket.LastAccessTime.Add(-time.Second)
+	used, err = limiter.Post("testkey1", 1, 5, duration)
+	if err != nil {
+		t.Error(err)
+	}
+	if used != 3 {
+		t.Error("There should be 3 token used", used)
 	}
 }
 
@@ -87,8 +132,8 @@ func TestLimiterMulti(t *testing.T) {
 	}
 
 	bucket, _ := storage.Get("testkey1")
-	if bucket.Used != 5 {
-		t.Error("Used should be 10", bucket)
+	if usage(bucket.Used) != 5 {
+		t.Error("Used should be 5", bucket)
 	}
 }
 
