@@ -2,6 +2,7 @@ package ratelimit
 
 import (
 	"errors"
+	"math"
 	"time"
 )
 
@@ -91,8 +92,7 @@ func (l *SingleThreadLimiter) serve() {
 					req.response <- response{0, ErrNotFound}
 					continue
 				}
-				usage := bucket.GetAdjustedUsage()
-				req.response <- response{usage, nil}
+				req.response <- response{usage(bucket.GetAdjustedUsage()), nil}
 			case DELETE:
 				err := l.storage.Delete(req.key)
 				req.response <- response{0, err}
@@ -102,20 +102,24 @@ func (l *SingleThreadLimiter) serve() {
 					req.response <- response{0, err}
 					continue
 				}
+
+				count, limit := float64(req.count), float64(req.limit)
+				duration := req.duration
+
 				if bucket == nil {
-					bucket = NewTokenBucket(req.limit, req.duration)
+					bucket = NewTokenBucket(limit, duration)
 				}
-				err = bucket.Consume(req.count, req.limit, req.duration)
+				err = bucket.Consume(count, limit, duration)
 				if err != nil {
-					req.response <- response{bucket.Used, err}
+					req.response <- response{usage(bucket.Used), err}
 					continue
 				}
-				err = l.storage.Set(req.key, bucket, req.duration)
+				err = l.storage.Set(req.key, bucket, duration)
 				if err != nil {
 					req.response <- response{0, err}
 					continue
 				}
-				req.response <- response{bucket.Used, nil}
+				req.response <- response{usage(bucket.Used), nil}
 			default:
 				req.response <- response{0, errors.New("Undefined Method")}
 				continue
@@ -130,9 +134,9 @@ type response struct {
 }
 
 const (
-	GET    int = iota
-	POST   int = iota
-	DELETE int = iota
+	GET = iota
+	POST
+	DELETE
 )
 
 type request struct {
@@ -142,4 +146,8 @@ type request struct {
 	limit    int64
 	duration time.Duration
 	response chan response
+}
+
+func usage(f float64) int64 {
+	return int64(math.Ceil(f))
 }
