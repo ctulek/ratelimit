@@ -50,7 +50,7 @@ func (bucket *TokenBucket) GetAdjustedUsage() float64 {
 	used := bucket.Used
 	if bucket.LastAccessTime.Unix() > 0 {
 		elapsed := now.Sub(bucket.LastAccessTime)
-		back := bucket.Limit * elapsed.Seconds() / bucket.Duration.Seconds()
+		back := bucket.Limit * float64(elapsed) / float64(bucket.Duration)
 		used -= back
 		if used < 0 {
 			used = 0
