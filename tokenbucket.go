@@ -20,23 +20,11 @@ func NewTokenBucket(limit float64, duration time.Duration) *TokenBucket {
 	return &TokenBucket{0, time.Now(), limit, duration}
 }
 
-func (bucket *TokenBucket) Consume(count, limit float64, duration time.Duration) error {
+func (bucket *TokenBucket) Consume(count float64) error {
 	now := time.Now()
-
-	if duration.Seconds() == 0 {
-		return nil
-	}
-
-	if bucket.Limit != limit || bucket.Duration != duration {
-		bucket.Used = 0
-		bucket.LastAccessTime = now
-		bucket.Limit = limit
-		bucket.Duration = duration
-	}
-
 	used := bucket.GetAdjustedUsage(now)
 
-	if used+count <= limit {
+	if used+count <= bucket.Limit {
 		bucket.Used = used + count
 		bucket.LastAccessTime = now
 		return nil

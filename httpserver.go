@@ -88,6 +88,10 @@ func (s *HttpServer) post(w http.ResponseWriter, req *http.Request) {
 		s.logger.Println("HTTP POST 405", key, count, limit, values.Get("duration"))
 		http.Error(w, err.Error(), http.StatusMethodNotAllowed)
 		return
+	} else if isLimiterError(err) {
+		s.logger.Println("HTTP POST 400", req.URL)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	} else if err != nil {
 		s.logger.Println("HTTP POST 500", req.URL, err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -145,4 +149,15 @@ func (s *HttpServer) getRequiredKeyDuration(key string, values url.Values) (time
 		return 0, errors.New(fmt.Sprintf("'%s' is not a valid duration value", key))
 	}
 	return duration, err
+}
+
+func isLimiterError(err error) bool {
+	list := [...]error{ErrKeyEmpty, ErrCountZero, ErrLimitZero,
+		ErrCountLimit, ErrZeroDuration}
+	for _, e := range list {
+		if err == e {
+			return true
+		}
+	}
+	return false
 }

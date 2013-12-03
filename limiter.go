@@ -3,7 +3,16 @@ package ratelimit
 import (
 	"errors"
 	"math"
+	"strings"
 	"time"
+)
+
+var (
+	ErrKeyEmpty     = errors.New("Key cannot be empty")
+	ErrCountZero    = errors.New("Count should be greater than zero")
+	ErrLimitZero    = errors.New("Limit should be greater than zero")
+	ErrCountLimit   = errors.New("Limit should be greater than count")
+	ErrZeroDuration = errors.New("Duration cannot be zero")
 )
 
 type Limiter interface {
@@ -30,10 +39,14 @@ func (l *SingleThreadLimiter) Stop() {
 	l.stopChan <- 1
 }
 
-func (l *SingleThreadLimiter) Post(key string, count int64, limit int64, duration time.Duration) (int64, error) {
-	if count <= 0 || limit <= 0 || count > limit || duration.Seconds() <= 0 {
-		return 0, nil
+func (l *SingleThreadLimiter) Post(key string, count, limit int64, duration time.Duration) (int64, error) {
+
+	err := checkPostArgs(key, count, limit, duration)
+
+	if err != nil {
+		return 0, err
 	}
+
 	req := request{
 		POST,
 		key,
@@ -92,6 +105,7 @@ func (l *SingleThreadLimiter) serve() {
 					req.response <- response{0, ErrNotFound}
 					continue
 				}
+
 				now := time.Now()
 				req.response <- response{usage(bucket.GetAdjustedUsage(now)), nil}
 			case DELETE:
@@ -109,8 +123,11 @@ func (l *SingleThreadLimiter) serve() {
 
 				if bucket == nil {
 					bucket = NewTokenBucket(limit, duration)
+				} else if bucket.Limit != limit || bucket.Duration != duration {
+					bucket = NewTokenBucket(limit, duration)
 				}
-				err = bucket.Consume(count, limit, duration)
+
+				err = bucket.Consume(count)
 				if err != nil {
 					req.response <- response{usage(bucket.Used), err}
 					continue
@@ -127,6 +144,22 @@ func (l *SingleThreadLimiter) serve() {
 			}
 		}
 	}
+}
+
+func checkPostArgs(key string, count, limit int64, duration time.Duration) error {
+	switch true {
+	case len(strings.TrimSpace(key)) == 0:
+		return ErrKeyEmpty
+	case count <= 0:
+		return ErrCountZero
+	case limit <= 0:
+		return ErrLimitZero
+	case count > limit:
+		return ErrCountLimit
+	case duration == 0:
+		return ErrZeroDuration
+	}
+	return nil
 }
 
 type response struct {

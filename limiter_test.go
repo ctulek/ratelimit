@@ -77,6 +77,24 @@ func TestLimiterEverySecondForMax5In10Seconds(t *testing.T) {
 	}
 }
 
+func TestLimiterZeroDuration(t *testing.T) {
+	storage := NewDummyStorage()
+	duration := time.Second * 0
+	limiter := NewSingleThreadLimiter(storage)
+	limiter.Start()
+	defer limiter.Stop()
+	t.Log("Duration in Test:", duration)
+	_, err := limiter.Post("testkey1", 1, 10, duration)
+	if err == nil {
+		t.Error("Error shouldn't be nil'")
+	}
+
+	if err != ErrZeroDuration {
+		t.Error("Error should be ErrZeroDuration")
+	}
+
+}
+
 func TestLimiterGet(t *testing.T) {
 	storage := NewDummyStorage()
 	duration := time.Second * 100

@@ -50,7 +50,54 @@ func TestHttpServerMissingValues(t *testing.T) {
 	if recorder.Code != http.StatusBadRequest {
 		t.Error("Status code is not 400", recorder.Code)
 	}
+	// TODO: Change this error message
 	if bytes.Equal(recorder.Body.Bytes(), []byte("'count' field is missing\n")) == false {
+		t.Error("Response body is wrong:", recorder.Body.String())
+	}
+}
+
+func TestHttpServerBadKeyValue(t *testing.T) {
+	logger := log.New(ioutil.Discard, "", 0)
+	storage := NewDummyStorage()
+	limiter := NewSingleThreadLimiter(storage)
+	limiter.Start()
+	defer limiter.Stop()
+	httpServer := NewHttpServer(limiter, logger)
+	recorder := httptest.NewRecorder()
+	values := url.Values{}
+	values.Set("key", " ")
+	values.Set("count", "1")
+	values.Set("limit", "10")
+	values.Set("duration", "100s")
+	request, _ := http.NewRequest("POST", "/?"+values.Encode(), nil)
+	httpServer.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Error("Status code is not 400", recorder.Code)
+	}
+	if bytes.Equal(recorder.Body.Bytes(), []byte("Key cannot be empty\n")) == false {
+		t.Error("Response body is wrong:", recorder.Body.String())
+	}
+}
+
+func TestHttpServerBadDurationValue(t *testing.T) {
+	logger := log.New(ioutil.Discard, "", 0)
+	storage := NewDummyStorage()
+	limiter := NewSingleThreadLimiter(storage)
+	limiter.Start()
+	defer limiter.Stop()
+	httpServer := NewHttpServer(limiter, logger)
+	recorder := httptest.NewRecorder()
+	values := url.Values{}
+	values.Set("key", "testkey1")
+	values.Set("count", "1")
+	values.Set("limit", "10")
+	values.Set("duration", "0s")
+	request, _ := http.NewRequest("POST", "/?"+values.Encode(), nil)
+	httpServer.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Error("Status code is not 400", recorder.Code)
+	}
+	if bytes.Equal(recorder.Body.Bytes(), []byte("Duration cannot be zero\n")) == false {
 		t.Error("Response body is wrong:", recorder.Body.String())
 	}
 }
